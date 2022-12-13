@@ -16,8 +16,10 @@ const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
 
 module.exports.hello = async (event) => {
-	// await g.addV("person").property("name", "stephen").next();
-	const result = await g.V().values('name').toList();
+	event.forEach(async (classe) => {
+		await g.addV('Class').property('name', classe.name).next();
+	});
+	const result = await g.V().hasLabel('Person').toList();
 	return {
 		statusCode: 200,
 		body: JSON.stringify({ message: 'Testing Gremlin!', data: result }),
