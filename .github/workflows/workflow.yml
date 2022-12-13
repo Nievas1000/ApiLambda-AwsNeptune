@@ -1,0 +1,66 @@
+name: API-NEPTUNE
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  avoid_reduncy:
+      runs-on: ubuntu-latest
+      steps: 
+        - name: Cancel Previus Builds
+          uses: styfle/cancel-workflow-action@0.9.1
+          with:
+            access_token: ${{github.token}}
+
+  lint:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout/@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Install Dependencies 
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+
+  security:
+    runs-on: ubuntu-latest
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout/@v3
+      - name: Set up Node 14
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: install Snyk CLI
+        run: npm install -g snyk
+      - name: run Snyk Open Source Test
+        run: snyk test
+      - name: run Snyk Code Test
+        run: snyk code test
+
+  deploy:
+    needs: [security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout/@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Serverless deploy
+        uses: serverless/github-action@v3.1
+        with:
+          args: deploy
+        env: 
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
