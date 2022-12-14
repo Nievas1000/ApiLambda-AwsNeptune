@@ -20,9 +20,11 @@ module.exports.hello = async (event) => {
 		event.forEach(async (classe) => {
 			await g.addV('Class').property('name', classe).next();
 		});
+		/* const result = await g.V().values('name').toList();
+		console.log(result); */
 		return {
 			statusCode: 200,
-			message: 'Inserted data!',
+			message: 'Inserted data.',
 		};
 	} else {
 		return {
