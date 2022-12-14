@@ -16,12 +16,19 @@ const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
 
 module.exports.hello = async (event) => {
-	event.forEach(async (classe) => {
-		await g.addV('Class').property('name', classe.name).next();
-	});
-	const result = await g.V().hasLabel('Person').toList();
-	return {
-		statusCode: 200,
-		body: JSON.stringify({ message: 'Testing Gremlin!', data: result }),
-	};
+	if (event.length > 0) {
+		event.forEach(async (classe) => {
+			await g.addV('Class').property('name', classe).next();
+		});
+		const result = await g.V().hasLabel('Class').toList();
+		return {
+			statusCode: 200,
+			body: { message: 'Testing Gremlin!', data: result },
+		};
+	} else {
+		return {
+			statusCode: 200,
+			body: { message: 'Incorrect body' },
+		};
+	}
 };
