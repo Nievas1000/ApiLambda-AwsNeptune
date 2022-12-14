@@ -1,5 +1,5 @@
-const gremlin = require('gremlin');
 require('dotenv').config();
+const gremlin = require('gremlin');
 // functions / definitions from gremlin js library
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection;
 const Graph = gremlin.structure.Graph;
@@ -20,10 +20,9 @@ module.exports.hello = async (event) => {
 		event.forEach(async (classe) => {
 			await g.addV('Class').property('name', classe).next();
 		});
-		const result = await g.V().hasLabel('Class').toList();
 		return {
 			statusCode: 200,
-			body: { message: 'Testing Gremlin!', data: result },
+			message: 'Inserted data!',
 		};
 	} else {
 		return {
