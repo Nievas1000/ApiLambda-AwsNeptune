@@ -17,14 +17,12 @@ const g = graph.traversal().withRemote(dc);
 
 module.exports.hello = async (event) => {
 	if (event.length > 0) {
-		event.forEach(async (classe) => {
+		for (const classe of event) {
 			await g.addV('Class').property('name', classe).next();
-		});
-		/* const result = await g.V().values('name').toList();
-		console.log(result); */
+		}
 		return {
 			statusCode: 200,
-			message: 'Inserted data.',
+			message: 'Inserted data!',
 		};
 	} else {
 		return {
