@@ -14,6 +14,7 @@ const dc = new DriverRemoteConnection(
 );
 const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
+/* const __ = gremlin.process.statics; */
 
 module.exports.hello = async (event) => {
 	if (event.length > 0) {

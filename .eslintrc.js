@@ -12,5 +12,6 @@ module.exports = {
 	plugins: ['react'],
 	rules: {
 		curly: ['error', 'all'],
+		'no-unused-vars': ['error', 'all'],
 	},
 };
