@@ -5,6 +5,9 @@ provider:
   name: aws
   runtime: nodejs16.x
 
+package:
+  individually: true
+
 functions:
   hello:
     handler: handler.hello
