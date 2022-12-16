@@ -1,5 +1,5 @@
-const gremlin = require('gremlin');
 require('dotenv').config();
+const gremlin = require('gremlin');
 // functions / definitions from gremlin js library
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection;
 const Graph = gremlin.structure.Graph;
