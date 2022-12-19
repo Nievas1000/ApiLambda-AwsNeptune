@@ -1,4 +1,4 @@
-service: ApiNeptune
+service: NeptuneApi
 frameworkVersion: '3'
 
 provider:
