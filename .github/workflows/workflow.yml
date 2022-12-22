@@ -82,10 +82,12 @@ jobs:
         with:
           node-version: '16'
       - name: Serverless deploy
+        run: npm install dotenv
+      - name: Serverless deploy
         if: ${{ github.event_name == 'push' }}
         uses: serverless/github-action@v3.1
         with:
-          args: npm install deploy
+          args: deploy
         env: 
           AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
