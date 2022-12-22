@@ -88,7 +88,6 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           npm install
-          npm install serverless
           serverless deploy
         env: 
           AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}

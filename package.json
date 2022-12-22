@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
-    "gremlin": "^3.6.1"
+    "gremlin": "^3.6.1",
+    "serverless": "^3.26.0"
   },
   "devDependencies": {
     "eslint": "^8.29.0",
