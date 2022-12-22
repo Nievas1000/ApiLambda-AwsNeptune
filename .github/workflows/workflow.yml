@@ -83,6 +83,7 @@ jobs:
           node-version: '16'
       - name: Install Dependencies 
         run: npm ci
+        working-directory: serverless
       - name: Serverless deploy
         if: ${{ github.event_name == 'push' }}
         uses: serverless/github-action@v3.1
