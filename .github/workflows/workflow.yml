@@ -41,6 +41,8 @@ jobs:
           node-version: '16'
       - name: install Snyk CLI
         run: npm install -g snyk
+      - name: run Snyk Open Source Test
+        run: snyk test
       - name: run Snyk Code Test
         run: snyk code test
 
@@ -84,9 +86,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Serverless deploy
         if: ${{ github.event_name == 'push' }}
-        run: |
-          npm install
-          serverless deploy
+        uses: serverless/github-action@v3.1
+        with:
+          args: -c "npm install && serverless deploy --stage=${{ matrix.stages.stage }} --verbose"
+          entrypoint: /bin/bash
         env: 
           AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
