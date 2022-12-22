@@ -81,8 +81,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '16'
-      - name: Serverless deploy
-        run: npm install dotenv
+      - name: Install Dependencies 
+        run: npm ci
       - name: Serverless deploy
         if: ${{ github.event_name == 'push' }}
         uses: serverless/github-action@v3.1
