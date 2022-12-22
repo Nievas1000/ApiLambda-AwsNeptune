@@ -73,6 +73,9 @@ jobs:
   deploy:
     needs: [security]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
     steps:
       - name: Checkout
         uses: actions/checkout/@v3
@@ -80,10 +83,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: ${{ matrix.node-version }}
       - name: Install Dependencies 
         run: npm ci
-        working-directory: nodejs/.serverless
       - name: Serverless deploy
         if: ${{ github.event_name == 'push' }}
         uses: serverless/github-action@v3.1
