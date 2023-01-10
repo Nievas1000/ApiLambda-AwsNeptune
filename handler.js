@@ -16,9 +16,15 @@ const g = graph.traversal().withRemote(dc);
 /* const __ = gremlin.process.statics; */
 
 module.exports.hello = async (event) => {
-	if (event.length > 0) {
-		for (const classe of event) {
-			await g.addV('Class').property('name', classe).next();
+	if (event.names && event.interfaces && event.extendss) {
+		for (const name of event.names) {
+			await g.addV('Class').property('name', name).next();
+		}
+		for (const interfaces of event.interfaces) {
+			await g.addV('Interface').property('name', interfaces).next();
+		}
+		for (const extend of event.extendss) {
+			await g.addV('Extends').property('name', extend).next();
 		}
 		await dc.close();
 		return {
