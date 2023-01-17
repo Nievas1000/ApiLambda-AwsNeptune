@@ -13,23 +13,38 @@ const dc = new DriverRemoteConnection(
 );
 const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
-/* const __ = gremlin.process.statics; */
+const __ = gremlin.process.statics;
 
 module.exports.hello = async (event) => {
-	if (event.names && event.interfaces && event.extendss) {
+	if (event.names && event.interfaces) {
 		for (const name of event.names) {
 			await g.addV('Class').property('name', name).next();
 		}
 		for (const interfaces of event.interfaces) {
 			await g.addV('Interface').property('name', interfaces).next();
 		}
-		for (const extend of event.extendss) {
-			await g.addV('Extends').property('name', extend).next();
+		for (const value of event.relationsExtends) {
+			await g
+				.V()
+				.hasLabel('Class')
+				.has('name', value.classe)
+				.addE('extend')
+				.to(__.V().hasLabel('Class').has('name', value.extend))
+				.next();
+		}
+		for (const value of event.relationsImplements) {
+			await g
+				.V()
+				.hasLabel('Class')
+				.has('name', value.classe)
+				.addE('implement')
+				.to(__.V().hasLabel('Interface').has('name', value.interfaz))
+				.next();
 		}
 		await dc.close();
 		return {
 			statusCode: 200,
-			message: 'Inserted data!',
+			message: 'Inserted data',
 		};
 	} else {
 		await dc.close();
