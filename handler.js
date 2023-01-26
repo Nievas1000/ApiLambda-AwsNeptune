@@ -1,3 +1,4 @@
+const { default: axios } = require('axios');
 const gremlin = require('gremlin');
 // functions / definitions from gremlin js library
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection;
@@ -16,41 +17,53 @@ const g = graph.traversal().withRemote(dc);
 const __ = gremlin.process.statics;
 
 module.exports.hello = async (event) => {
-	if (event.names && event.interfaces) {
-		for (const name of event.names) {
-			await g.addV('Class').property('name', name).next();
+	if (event.test) {
+		try {
+			const response = await axios.post(process.env.API_URL_TEST, event);
+			return {
+				statusCode: 200,
+				body: response,
+			};
+		} catch (error) {
+			return error;
 		}
-		for (const interfaces of event.interfaces) {
-			await g.addV('Interface').property('name', interfaces).next();
-		}
-		for (const value of event.relationsExtends) {
-			await g
-				.V()
-				.hasLabel('Class')
-				.has('name', value.classe)
-				.addE('extend')
-				.to(__.V().hasLabel('Class').has('name', value.extend))
-				.next();
-		}
-		for (const value of event.relationsImplements) {
-			await g
-				.V()
-				.hasLabel('Class')
-				.has('name', value.classe)
-				.addE('implement')
-				.to(__.V().hasLabel('Interface').has('name', value.interfaz))
-				.next();
-		}
-		await dc.close();
-		return {
-			statusCode: 200,
-			message: 'Inserted data',
-		};
 	} else {
-		await dc.close();
-		return {
-			statusCode: 200,
-			body: { message: 'Incorrect body' },
-		};
+		if (event.names && event.interfaces) {
+			for (const name of event.names) {
+				await g.addV('Class').property('name', name).next();
+			}
+			for (const interfaces of event.interfaces) {
+				await g.addV('Interface').property('name', interfaces).next();
+			}
+			for (const value of event.relationsExtends) {
+				await g
+					.V()
+					.hasLabel('Class')
+					.has('name', value.classe)
+					.addE('extend')
+					.to(__.V().hasLabel('Class').has('name', value.extend))
+					.next();
+			}
+			for (const value of event.relationsImplements) {
+				await g
+					.V()
+					.hasLabel('Class')
+					.has('name', value.classe)
+					.addE('implement')
+					.to(__.V().hasLabel('Interface').has('name', value.interfaz))
+					.next();
+			}
+			await dc.close();
+			return {
+				statusCode: 200,
+				message: 'Inserted data',
+			};
+		} else {
+			await dc.close();
+			return {
+				statusCode: 200,
+				body: { message: 'Incorrect body' },
+			};
+		}
 	}
 };
