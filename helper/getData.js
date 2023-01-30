@@ -14,8 +14,10 @@ const dc = new DriverRemoteConnection(
 const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
 const __ = gremlin.process.statics;
+
+// Mediante la userApplication key, creamos un json en el que van a estar almacenadas todas las aplicaciones del usuario con sus relaciones, clases e interfaces
 exports.getData = async (event) => {
-	if (event.userApplicationKey && event.applicationName) {
+	if (event.userApplicationKey) {
 		const data = [];
 		const apps = await g
 			.V()

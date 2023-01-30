@@ -14,6 +14,8 @@ const dc = new DriverRemoteConnection(
 const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
 const __ = gremlin.process.statics;
+
+// Recibimos la informacion desde la app de Java y le damos forma al json para enviar a la Api de Neptune
 exports.insertData = async (event) => {
 	if (event.names && event.interfaces) {
 		for (const name of event.names) {
