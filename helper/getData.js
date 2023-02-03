@@ -26,12 +26,20 @@ exports.getData = async (event) => {
 			.dedup()
 			.toList();
 		for (const app of apps) {
+			const date = await g
+				.V()
+				.hasLabel(app)
+				.has('userApplicationKey', event.userApplicationKey)
+				.values('date')
+				.toList();
 			const dataApp = {
 				applicationName: app,
 				classes: [],
+				date: date[0],
 				interfaces: [],
 				relationsExtends: [],
 				relationsImplement: [],
+				usedClasses: [],
 			};
 			const names = await g
 				.V()
@@ -96,6 +104,32 @@ exports.getData = async (event) => {
 				relation.classe = classe;
 				relation.implement = classImplement[0];
 				dataApp.relationsImplement.push(relation);
+			}
+			const classesUsed = await g
+				.V()
+				.hasLabel(app)
+				.has('userApplicationKey', event.userApplicationKey)
+				.where(__.outE('uses'))
+				.values('name')
+				.toList();
+			for (const classe of classesUsed) {
+				const usedClass = await g
+					.V()
+					.hasLabel(app)
+					.has('userApplicationKey', event.userApplicationKey)
+					.has('name', classe)
+					.out('uses')
+					.values('name')
+					.toList();
+				for (const value of usedClass) {
+					const used = {
+						classe: '',
+						use: '',
+					};
+					used.classe = classe;
+					used.use = value;
+					dataApp.usedClasses.push(used);
+				}
 			}
 			data.push(dataApp);
 		}

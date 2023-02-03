@@ -18,6 +18,11 @@ const __ = gremlin.process.statics;
 // Recibimos la informacion desde la app de Java y le damos forma al json para enviar a la Api de Neptune
 exports.insertData = async (event) => {
 	if (event.names && event.interfaces) {
+		await g
+			.addV(event.applicationName)
+			.property('userApplicationKey', event.userApplicationKey)
+			.property('date', new Date())
+			.next();
 		for (const name of event.names) {
 			await g
 				.addV(event.applicationName)
@@ -65,6 +70,23 @@ exports.insertData = async (event) => {
 						.has('userApplicationKey', event.userApplicationKey)
 						.has('type', 'Interface')
 						.has('name', value.interfaz)
+				)
+				.next();
+		}
+		for (const value of event.usedClasses) {
+			await g
+				.V()
+				.hasLabel(event.applicationName)
+				.has('name', value.classe)
+				.has('userApplicationKey', event.userApplicationKey)
+				.has('type', 'Class')
+				.addE('uses')
+				.to(
+					__.V()
+						.hasLabel(event.applicationName)
+						.has('userApplicationKey', event.userApplicationKey)
+						.has('type', 'Class')
+						.has('name', value.use)
 				)
 				.next();
 		}
