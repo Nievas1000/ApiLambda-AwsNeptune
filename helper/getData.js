@@ -105,14 +105,14 @@ exports.getData = async (event) => {
 				relation.implement = classImplement[0];
 				dataApp.relationsImplement.push(relation);
 			}
-			const classesUsed = await g
+			const mainClass = await g
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
 				.where(__.outE('uses'))
 				.values('name')
 				.toList();
-			for (const classe of classesUsed) {
+			for (const classe of mainClass) {
 				const usedClass = await g
 					.V()
 					.hasLabel(app)
@@ -121,15 +121,17 @@ exports.getData = async (event) => {
 					.out('uses')
 					.values('name')
 					.toList();
+				const arrUsedClasses = [];
 				for (const value of usedClass) {
-					const used = {
-						classe: '',
-						use: '',
-					};
-					used.classe = classe;
-					used.use = value;
-					dataApp.usedClasses.push(used);
+					arrUsedClasses.push(value);
 				}
+				const used = {
+					classe: '',
+					use: [],
+				};
+				used.classe = classe;
+				used.use = arrUsedClasses;
+				dataApp.usedClasses.push(used);
 			}
 			data.push(dataApp);
 		}
