@@ -40,7 +40,9 @@ exports.getData = async (event) => {
 				relationsExtends: [],
 				relationsImplement: [],
 				usedClasses: [],
+				tables: [],
 			};
+			// Names of Classes and Interfaces
 			const names = await g
 				.V()
 				.hasLabel(app)
@@ -57,6 +59,7 @@ exports.getData = async (event) => {
 				.toList();
 			dataApp.classes.push(names);
 			dataApp.interfaces.push(interfaces);
+			// Extend Class
 			const classesExtend = await g
 				.V()
 				.hasLabel(app)
@@ -81,6 +84,7 @@ exports.getData = async (event) => {
 				relation.extend = classExtend[0];
 				dataApp.relationsExtends.push(relation);
 			}
+			// Implement Class
 			const classesImplement = await g
 				.V()
 				.hasLabel(app)
@@ -105,6 +109,7 @@ exports.getData = async (event) => {
 				relation.implement = classImplement[0];
 				dataApp.relationsImplement.push(relation);
 			}
+			// Used Class
 			const mainClass = await g
 				.V()
 				.hasLabel(app)
@@ -132,6 +137,31 @@ exports.getData = async (event) => {
 				used.classe = classe;
 				used.use = arrUsedClasses;
 				dataApp.usedClasses.push(used);
+			}
+			// Tables of a Class
+			const classesWithTables = await g
+				.V()
+				.hasLabel(app)
+				.has('userApplicationKey', event.userApplicationKey)
+				.where(__.outE('table'))
+				.values('name')
+				.toList();
+			for (const classe of classesWithTables) {
+				const relation = {
+					classe: '',
+					table: '',
+				};
+				const table = await g
+					.V()
+					.hasLabel(app)
+					.has('userApplicationKey', event.userApplicationKey)
+					.has('name', classe)
+					.out('table')
+					.values('name')
+					.toList();
+				relation.classe = classe;
+				relation.table = table[0];
+				dataApp.tables.push(relation);
 			}
 			data.push(dataApp);
 		}

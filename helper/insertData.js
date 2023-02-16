@@ -90,10 +90,28 @@ exports.insertData = async (event) => {
 				)
 				.next();
 		}
+		for (const value of event.tables) {
+			for (const tableName of value.tables) {
+				await g
+					.V()
+					.hasLabel(event.applicationName)
+					.has('name', value.classe)
+					.has('userApplicationKey', event.userApplicationKey)
+					.has('type', 'Class')
+					.addE('table')
+					.to(
+						__.addV(event.applicationName)
+							.property('name', tableName)
+							.property('userApplicationKey', event.userApplicationKey)
+							.property('type', 'Table')
+					)
+					.next();
+			}
+		}
 		await dc.close();
 		return {
 			statusCode: 200,
-			message: 'Inserted data',
+			message: 'Inserted data!',
 		};
 	} else {
 		await dc.close();
