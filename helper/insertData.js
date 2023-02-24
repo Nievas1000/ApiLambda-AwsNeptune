@@ -16,7 +16,7 @@ const g = graph.traversal().withRemote(dc);
 const __ = gremlin.process.statics;
 
 // Recibimos la informacion desde la app de Java y le damos forma al json para enviar a la Api de Neptune
-exports.insertData = async (event) => {
+exports.insertData = async (event, context, callback) => {
 	if (event.names && event.interfaces) {
 		await g
 			.addV(event.applicationName)
@@ -115,9 +115,10 @@ exports.insertData = async (event) => {
 		};
 	} else {
 		await dc.close();
-		return {
-			statusCode: 200,
-			body: { message: 'Incorrect body' },
+		const myErrorObj = {
+			errorType: 'Error',
+			httpStatus: 500,
 		};
+		callback(JSON.stringify(myErrorObj));
 	}
 };

@@ -16,7 +16,7 @@ const g = graph.traversal().withRemote(dc);
 const __ = gremlin.process.statics;
 
 // Mediante la userApplication key, creamos un json en el que van a estar almacenadas todas las aplicaciones del usuario con sus relaciones, clases e interfaces
-exports.getData = async (event) => {
+exports.getData = async (event, context, callback) => {
 	if (event.userApplicationKey) {
 		const data = [];
 		const apps = await g
@@ -70,7 +70,7 @@ exports.getData = async (event) => {
 			for (const classe of classesExtend) {
 				const relation = {
 					classe: '',
-					extend: '',
+					extend: null,
 				};
 				const classExtend = await g
 					.V()
@@ -78,10 +78,15 @@ exports.getData = async (event) => {
 					.has('userApplicationKey', event.userApplicationKey)
 					.has('name', classe)
 					.out('extend')
-					.values('name')
+					.values('name', 'parent', 'posX', 'posY')
 					.toList();
 				relation.classe = classe;
-				relation.extend = classExtend[0];
+				relation.extend = {
+					name: classExtend[0],
+					parent: classExtend.length > 1 ? classExtend[1] : null,
+					posX: classExtend.length > 1 ? classExtend[2] : null,
+					posY: classExtend.length > 1 ? classExtend[3] : null,
+				};
 				dataApp.relationsExtends.push(relation);
 			}
 			// Implement Class
@@ -95,7 +100,7 @@ exports.getData = async (event) => {
 			for (const classe of classesImplement) {
 				const relation = {
 					classe: '',
-					implement: '',
+					implement: null,
 				};
 				const classImplement = await g
 					.V()
@@ -103,10 +108,15 @@ exports.getData = async (event) => {
 					.has('userApplicationKey', event.userApplicationKey)
 					.has('name', classe)
 					.out('implement')
-					.values('name')
+					.values('name', 'parent', 'posX', 'posY')
 					.toList();
 				relation.classe = classe;
-				relation.implement = classImplement[0];
+				relation.implement = {
+					name: classImplement[0],
+					parent: classImplement.length > 1 ? classImplement[1] : null,
+					posX: classImplement.length > 1 ? classImplement[2] : null,
+					posY: classImplement.length > 1 ? classImplement[3] : null,
+				};
 				dataApp.relationsImplement.push(relation);
 			}
 			// Used Class
@@ -128,7 +138,20 @@ exports.getData = async (event) => {
 					.toList();
 				const arrUsedClasses = [];
 				for (const value of usedClass) {
-					arrUsedClasses.push(value);
+					const parent = await g
+						.V()
+						.hasLabel(app)
+						.has('userApplicationKey', event.userApplicationKey)
+						.has('name', classe)
+						.out('uses')
+						.values('parent', 'posX', 'posY')
+						.toList();
+					arrUsedClasses.push({
+						name: value,
+						parent: parent.length > 0 ? parent[0] : null,
+						posX: parent.length > 0 ? parent[1] : null,
+						posY: parent.length > 0 ? parent[2] : null,
+					});
 				}
 				const used = {
 					classe: '',
@@ -149,7 +172,7 @@ exports.getData = async (event) => {
 			for (const classe of classesWithTables) {
 				const relation = {
 					classe: '',
-					table: '',
+					table: [],
 				};
 				const table = await g
 					.V()
@@ -167,6 +190,10 @@ exports.getData = async (event) => {
 		}
 		return data;
 	} else {
-		return 'Error';
+		const myErrorObj = {
+			errorType: 'Error',
+			httpStatus: 500,
+		};
+		callback(JSON.stringify(myErrorObj));
 	}
 };
