@@ -83,9 +83,6 @@ exports.getData = async (event, context, callback) => {
 				relation.classe = classe;
 				relation.extend = {
 					name: classExtend[0],
-					parent: classExtend.length > 1 ? classExtend[1] : null,
-					posX: classExtend.length > 1 ? classExtend[2] : null,
-					posY: classExtend.length > 1 ? classExtend[3] : null,
 				};
 				dataApp.relationsExtends.push(relation);
 			}
@@ -108,14 +105,11 @@ exports.getData = async (event, context, callback) => {
 					.has('userApplicationKey', event.userApplicationKey)
 					.has('name', classe)
 					.out('implement')
-					.values('name', 'parent', 'posX', 'posY')
+					.values('name')
 					.toList();
 				relation.classe = classe;
 				relation.implement = {
 					name: classImplement[0],
-					parent: classImplement.length > 1 ? classImplement[1] : null,
-					posX: classImplement.length > 1 ? classImplement[2] : null,
-					posY: classImplement.length > 1 ? classImplement[3] : null,
 				};
 				dataApp.relationsImplement.push(relation);
 			}
@@ -138,19 +132,8 @@ exports.getData = async (event, context, callback) => {
 					.toList();
 				const arrUsedClasses = [];
 				for (const value of usedClass) {
-					const parent = await g
-						.V()
-						.hasLabel(app)
-						.has('userApplicationKey', event.userApplicationKey)
-						.has('name', classe)
-						.out('uses')
-						.values('parent', 'posX', 'posY')
-						.toList();
 					arrUsedClasses.push({
 						name: value,
-						parent: parent.length > 0 ? parent[0] : null,
-						posX: parent.length > 0 ? parent[1] : null,
-						posY: parent.length > 0 ? parent[2] : null,
 					});
 				}
 				const used = {
