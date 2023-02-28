@@ -119,6 +119,6 @@ exports.insertData = async (event, context, callback) => {
 			errorType: 'Error',
 			httpStatus: 500,
 		};
-		callback(JSON.stringify(myErrorObj));
+		callback(new Error(JSON.stringify(myErrorObj)));
 	}
 };
