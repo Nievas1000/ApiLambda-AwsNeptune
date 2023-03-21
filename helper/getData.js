@@ -22,6 +22,8 @@ exports.getData = async (event, context, callback) => {
 		const apps = await g
 			.V()
 			.has('userApplicationKey', event.userApplicationKey)
+			.hasNot('state')
+			.not(__.has('state', 'close'))
 			.label()
 			.dedup()
 			.toList();
@@ -70,7 +72,7 @@ exports.getData = async (event, context, callback) => {
 			for (const classe of classesExtend) {
 				const relation = {
 					classe: '',
-					extend: null,
+					extend: [],
 				};
 				const classExtend = await g
 					.V()
@@ -78,12 +80,16 @@ exports.getData = async (event, context, callback) => {
 					.has('userApplicationKey', event.userApplicationKey)
 					.has('name', classe)
 					.out('extend')
-					.values('name', 'parent', 'posX', 'posY')
+					.values('name')
 					.toList();
+				const arrExtends = [];
+				for (const value of classExtend) {
+					arrExtends.push({
+						name: value,
+					});
+				}
 				relation.classe = classe;
-				relation.extend = {
-					name: classExtend[0],
-				};
+				relation.extend = arrExtends;
 				dataApp.relationsExtends.push(relation);
 			}
 			// Implement Class
