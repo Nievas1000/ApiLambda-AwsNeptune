@@ -14,11 +14,12 @@ const dc = new DriverRemoteConnection(
 const graph = new Graph();
 const g = graph.traversal().withRemote(dc);
 
-// Recibimos la informacion desde la app de Java y le damos forma al json para enviar a la Api de Neptune
+// Seteamos un estado de cerrado en la app mediante userKey y nombre de la app
 exports.deleteApp = async (event, context, callback) => {
 	if (event.userApplicationKey) {
 		try {
-			g.V()
+			await g
+				.V()
 				.hasLabel(event.app)
 				.has('userApplicationKey', event.userApplicationKey)
 				.property('state', 'close')

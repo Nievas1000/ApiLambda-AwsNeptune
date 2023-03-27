@@ -9,8 +9,7 @@ module.exports.hello = async (event) => {
 			const response = await getData(event);
 			return response;
 		} else if (event.type === 'delete') {
-			await deleteApp(event);
-			const response = await getData(event);
+			const response = await deleteApp(event);
 			return response;
 		} else {
 			const response = await insertData(event);

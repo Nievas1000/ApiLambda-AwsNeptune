@@ -24,6 +24,7 @@ exports.getData = async (event, context, callback) => {
 			.has('userApplicationKey', event.userApplicationKey)
 			.hasNot('state')
 			.not(__.has('state', 'close'))
+			.not(__.has('state', 'loading'))
 			.label()
 			.dedup()
 			.toList();
@@ -32,6 +33,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.not(__.has('state', 'close'))
+				.not(__.has('state', 'loading'))
 				.values('date')
 				.toList();
 			const dataApp = {
@@ -177,8 +180,10 @@ exports.getData = async (event, context, callback) => {
 			}
 			data.push(dataApp);
 		}
+		await dc.close();
 		return data;
 	} else {
+		await dc.close();
 		const myErrorObj = {
 			errorType: 'Error',
 			httpStatus: 500,
