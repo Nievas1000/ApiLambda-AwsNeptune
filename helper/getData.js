@@ -22,9 +22,8 @@ exports.getData = async (event, context, callback) => {
 		const apps = await g
 			.V()
 			.has('userApplicationKey', event.userApplicationKey)
-			.hasNot('state')
+			.has('state', 'open')
 			.not(__.has('state', 'close'))
-			.not(__.has('state', 'loading'))
 			.label()
 			.dedup()
 			.toList();
@@ -33,8 +32,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
 				.not(__.has('state', 'close'))
-				.not(__.has('state', 'loading'))
 				.values('date')
 				.toList();
 			const dataApp = {
@@ -52,6 +51,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
 				.has('type', 'Class')
 				.values('name')
 				.toList();
@@ -59,6 +60,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
 				.has('type', 'Interface')
 				.values('name')
 				.toList();
@@ -69,6 +72,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
 				.where(__.outE('extend'))
 				.values('name')
 				.toList();
@@ -81,6 +86,8 @@ exports.getData = async (event, context, callback) => {
 					.V()
 					.hasLabel(app)
 					.has('userApplicationKey', event.userApplicationKey)
+					.has('state', 'open')
+					.not(__.has('state', 'close'))
 					.has('name', classe)
 					.out('extend')
 					.values('name')
@@ -100,6 +107,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
 				.where(__.outE('implement'))
 				.values('name')
 				.toList();
@@ -112,6 +121,8 @@ exports.getData = async (event, context, callback) => {
 					.V()
 					.hasLabel(app)
 					.has('userApplicationKey', event.userApplicationKey)
+					.has('state', 'open')
+					.not(__.has('state', 'close'))
 					.has('name', classe)
 					.out('implement')
 					.values('name')
@@ -127,6 +138,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
 				.where(__.outE('uses'))
 				.values('name')
 				.toList();
@@ -135,6 +148,8 @@ exports.getData = async (event, context, callback) => {
 					.V()
 					.hasLabel(app)
 					.has('userApplicationKey', event.userApplicationKey)
+					.has('state', 'open')
+					.not(__.has('state', 'close'))
 					.has('name', classe)
 					.out('uses')
 					.values('name')
@@ -158,6 +173,8 @@ exports.getData = async (event, context, callback) => {
 				.V()
 				.hasLabel(app)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
 				.where(__.outE('table'))
 				.values('name')
 				.toList();
@@ -170,6 +187,8 @@ exports.getData = async (event, context, callback) => {
 					.V()
 					.hasLabel(app)
 					.has('userApplicationKey', event.userApplicationKey)
+					.has('state', 'open')
+					.not(__.has('state', 'close'))
 					.has('name', classe)
 					.out('table')
 					.values('name')

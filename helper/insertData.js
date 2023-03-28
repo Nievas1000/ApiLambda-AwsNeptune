@@ -18,26 +18,25 @@ const __ = gremlin.process.statics;
 // Recibimos la informacion desde la app de Java y le damos forma al json para enviar a la Api de Neptune
 exports.insertData = async (event, context, callback) => {
 	if (event.names && event.interfaces) {
-		const existApp = await g
-			.V()
-			.hasLabel(event.applicationName)
-			.has('userApplicationKey', event.userApplicationKey)
-			.toList();
-		if (existApp.length > 0) {
+		try {
+			// Si hay una aplicacion anterior con este nombre del usuario, le ponemos el state close
 			await g
 				.V()
 				.hasLabel(event.applicationName)
 				.has('userApplicationKey', event.userApplicationKey)
 				.property('state', 'close')
-				.next();
-		}
-		try {
+				.properties('state')
+				.hasValue('open')
+				.drop()
+				.iterate();
+			// Guardamos la fecha de carga
 			await g
 				.addV(event.applicationName)
 				.property('userApplicationKey', event.userApplicationKey)
 				.property('date', new Date())
 				.property('state', 'loading')
 				.next();
+
 			for (const name of event.names) {
 				await g
 					.addV(event.applicationName)
@@ -130,15 +129,16 @@ exports.insertData = async (event, context, callback) => {
 					)
 					.next();
 			}
+			// Una vez que se carguen todas las clases, quitamos el state de loading y ponemos el state de open
 			await g
 				.V()
 				.hasLabel(event.applicationName)
 				.has('userApplicationKey', event.userApplicationKey)
-				.has('state', 'loading')
 				.property('state', 'open')
 				.properties('state')
+				.hasValue('loading')
 				.drop()
-				.next();
+				.iterate();
 			await dc.close();
 			return {
 				statusCode: 200,
@@ -149,6 +149,7 @@ exports.insertData = async (event, context, callback) => {
 				.V()
 				.hasLabel(event.applicationName)
 				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'loading')
 				.drop()
 				.next();
 			await dc.close();

@@ -23,7 +23,10 @@ exports.deleteApp = async (event, context, callback) => {
 				.hasLabel(event.app)
 				.has('userApplicationKey', event.userApplicationKey)
 				.property('state', 'close')
-				.next();
+				.properties('state')
+				.hasValue('open')
+				.drop()
+				.iterate();
 			await dc.close();
 			return {
 				statusCode: 200,
