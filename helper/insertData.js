@@ -37,98 +37,44 @@ exports.insertData = async (event, context, callback) => {
 				.property('state', 'loading')
 				.next();
 
-			for (const name of event.names) {
-				await g
-					.addV(event.applicationName)
-					.property('name', name)
-					.property('userApplicationKey', event.userApplicationKey)
-					.property('type', 'Class')
-					.property('state', 'loading')
-					.next();
-			}
-			for (const interfaces of event.interfaces) {
-				await g
-					.addV(event.applicationName)
-					.property('name', interfaces)
-					.property('userApplicationKey', event.userApplicationKey)
-					.property('type', 'Interface')
-					.property('state', 'loading')
-					.next();
-			}
-			for (const value of event.relationsExtends) {
-				await g
-					.V()
-					.hasLabel(event.applicationName)
-					.has('name', value.classe)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('type', 'Class')
-					.has('state', 'loading')
-					.addE('extend')
-					.to(
-						__.V()
-							.hasLabel(event.applicationName)
-							.has('type', 'Class')
-							.has('userApplicationKey', event.userApplicationKey)
-							.has('state', 'loading')
-							.has('name', value.extend)
-					)
-					.next();
-			}
-			for (const value of event.relationsImplements) {
-				await g
-					.V()
-					.hasLabel(event.applicationName)
-					.has('name', value.classe)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('type', 'Class')
-					.has('state', 'loading')
-					.addE('implement')
-					.to(
-						__.V()
-							.hasLabel(event.applicationName)
-							.has('userApplicationKey', event.userApplicationKey)
-							.has('type', 'Interface')
-							.has('state', 'loading')
-							.has('name', value.interfaz)
-					)
-					.next();
-			}
-			for (const value of event.usedClasses) {
-				await g
-					.V()
-					.hasLabel(event.applicationName)
-					.has('name', value.classe)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('type', 'Class')
-					.has('state', 'loading')
-					.addE('uses')
-					.to(
-						__.V()
-							.hasLabel(event.applicationName)
-							.has('userApplicationKey', event.userApplicationKey)
-							.has('state', 'loading')
-							.has('name', value.use)
-					)
-					.next();
-			}
-			for (const value of event.tables) {
-				await g
-					.V()
-					.hasLabel(event.applicationName)
-					.has('name', value.classe)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('type', 'Class')
-					.has('state', 'loading')
-					.addE('table')
-					.to(
-						__.addV(event.applicationName)
-							.property('name', value.table)
-							.property('userApplicationKey', event.userApplicationKey)
-							.property('state', 'loading')
-							.property('type', 'Table')
-					)
-					.next();
-			}
+			// Guardamos las clases como vertices
+			await saveVertex(
+				event.applicationName,
+				event.userApplicationKey,
+				event.names,
+				'Class'
+			);
+			// Guardamos las interfaces como vertices
+			await saveVertex(
+				event.applicationName,
+				event.userApplicationKey,
+				event.interfaces,
+				'Interface'
+			);
+			// Guardamos las relaciones de extends
+			await saveRelationExtend(
+				event.applicationName,
+				event.userApplicationKey,
+				event.relationsExtends
+			);
+			// Guardamos las relaciones de Implements
+			await saveRelationImplement(
+				event.applicationName,
+				event.userApplicationKey,
+				event.relationsImplements
+			);
+			// Guardamos las clases usadas por otras
+			await saveUsedClasses(
+				event.applicationName,
+				event.userApplicationKey,
+				event.usedClasses
+			);
+			// Guardamos las clases usadas por otras
+			await saveTables(
+				event.applicationName,
+				event.userApplicationKey,
+				event.tables
+			);
 			// Una vez que se carguen todas las clases, quitamos el state de loading y ponemos el state de open
 			await g
 				.V()
@@ -165,5 +111,103 @@ exports.insertData = async (event, context, callback) => {
 			httpStatus: 500,
 		};
 		callback(new Error(JSON.stringify(myErrorObj)));
+	}
+};
+
+const saveVertex = async (app, key, data, type) => {
+	for (const value of data) {
+		await g
+			.addV(app)
+			.property('name', value)
+			.property('userApplicationKey', key)
+			.property('type', type)
+			.property('state', 'loading')
+			.next();
+	}
+};
+
+const saveRelationExtend = async (app, key, data) => {
+	for (const value of data) {
+		await g
+			.V()
+			.hasLabel(app)
+			.has('name', value.classe)
+			.has('userApplicationKey', key)
+			.has('type', 'Class')
+			.has('state', 'loading')
+			.addE('extend')
+			.to(
+				__.V()
+					.hasLabel(app)
+					.has('type', 'Class')
+					.has('userApplicationKey', key)
+					.has('state', 'loading')
+					.has('name', value.extend)
+			)
+			.next();
+	}
+};
+
+const saveRelationImplement = async (app, key, data) => {
+	for (const value of data) {
+		await g
+			.V()
+			.hasLabel(app)
+			.has('name', value.classe)
+			.has('userApplicationKey', key)
+			.has('type', 'Class')
+			.has('state', 'loading')
+			.addE('implement')
+			.to(
+				__.V()
+					.hasLabel(app)
+					.has('userApplicationKey', key)
+					.has('type', 'Interface')
+					.has('state', 'loading')
+					.has('name', value.interfaz)
+			)
+			.next();
+	}
+};
+
+const saveUsedClasses = async (app, key, data) => {
+	for (const value of data) {
+		await g
+			.V()
+			.hasLabel(app)
+			.has('name', value.classe)
+			.has('userApplicationKey', key)
+			.has('type', 'Class')
+			.has('state', 'loading')
+			.addE('uses')
+			.to(
+				__.V()
+					.hasLabel(app)
+					.has('userApplicationKey', key)
+					.has('state', 'loading')
+					.has('name', value.use)
+			)
+			.next();
+	}
+};
+
+const saveTables = async (app, key, data) => {
+	for (const value of data) {
+		await g
+			.V()
+			.hasLabel(app)
+			.has('name', value.classe)
+			.has('userApplicationKey', key)
+			.has('type', 'Class')
+			.has('state', 'loading')
+			.addE('table')
+			.to(
+				__.addV(app)
+					.property('name', value.table)
+					.property('userApplicationKey', key)
+					.property('state', 'loading')
+					.property('type', 'Table')
+			)
+			.next();
 	}
 };

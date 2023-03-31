@@ -68,135 +68,13 @@ exports.getData = async (event, context, callback) => {
 			dataApp.classes.push(names);
 			dataApp.interfaces.push(interfaces);
 			// Extend Class
-			const classesExtend = await g
-				.V()
-				.hasLabel(app)
-				.has('userApplicationKey', event.userApplicationKey)
-				.has('state', 'open')
-				.not(__.has('state', 'close'))
-				.where(__.outE('extend'))
-				.values('name')
-				.toList();
-			for (const classe of classesExtend) {
-				const relation = {
-					classe: '',
-					extend: [],
-				};
-				const classExtend = await g
-					.V()
-					.hasLabel(app)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('state', 'open')
-					.not(__.has('state', 'close'))
-					.has('name', classe)
-					.out('extend')
-					.values('name')
-					.toList();
-				const arrExtends = [];
-				for (const value of classExtend) {
-					arrExtends.push({
-						name: value,
-					});
-				}
-				relation.classe = classe;
-				relation.extend = arrExtends;
-				dataApp.relationsExtends.push(relation);
-			}
+			await getRelations(app, event.userApplicationKey, dataApp, 'extend');
 			// Implement Class
-			const classesImplement = await g
-				.V()
-				.hasLabel(app)
-				.has('userApplicationKey', event.userApplicationKey)
-				.has('state', 'open')
-				.not(__.has('state', 'close'))
-				.where(__.outE('implement'))
-				.values('name')
-				.toList();
-			for (const classe of classesImplement) {
-				const relation = {
-					classe: '',
-					implement: null,
-				};
-				const classImplement = await g
-					.V()
-					.hasLabel(app)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('state', 'open')
-					.not(__.has('state', 'close'))
-					.has('name', classe)
-					.out('implement')
-					.values('name')
-					.toList();
-				relation.classe = classe;
-				relation.implement = {
-					name: classImplement[0],
-				};
-				dataApp.relationsImplement.push(relation);
-			}
+			await getRelations(app, event.userApplicationKey, dataApp, 'implement');
 			// Used Class
-			const mainClass = await g
-				.V()
-				.hasLabel(app)
-				.has('userApplicationKey', event.userApplicationKey)
-				.has('state', 'open')
-				.not(__.has('state', 'close'))
-				.where(__.outE('uses'))
-				.values('name')
-				.toList();
-			for (const classe of mainClass) {
-				const usedClass = await g
-					.V()
-					.hasLabel(app)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('state', 'open')
-					.not(__.has('state', 'close'))
-					.has('name', classe)
-					.out('uses')
-					.values('name')
-					.toList();
-				const arrUsedClasses = [];
-				for (const value of usedClass) {
-					arrUsedClasses.push({
-						name: value,
-					});
-				}
-				const used = {
-					classe: '',
-					use: [],
-				};
-				used.classe = classe;
-				used.use = arrUsedClasses;
-				dataApp.usedClasses.push(used);
-			}
+			await getRelations(app, event.userApplicationKey, dataApp, 'uses');
 			// Tables of a Class
-			const classesWithTables = await g
-				.V()
-				.hasLabel(app)
-				.has('userApplicationKey', event.userApplicationKey)
-				.has('state', 'open')
-				.not(__.has('state', 'close'))
-				.where(__.outE('table'))
-				.values('name')
-				.toList();
-			for (const classe of classesWithTables) {
-				const relation = {
-					classe: '',
-					table: [],
-				};
-				const table = await g
-					.V()
-					.hasLabel(app)
-					.has('userApplicationKey', event.userApplicationKey)
-					.has('state', 'open')
-					.not(__.has('state', 'close'))
-					.has('name', classe)
-					.out('table')
-					.values('name')
-					.toList();
-				relation.classe = classe;
-				relation.table = table[0];
-				dataApp.tables.push(relation);
-			}
+			await getTables(app, event.userApplicationKey, dataApp);
 			data.push(dataApp);
 		}
 		await dc.close();
@@ -208,5 +86,85 @@ exports.getData = async (event, context, callback) => {
 			httpStatus: 500,
 		};
 		callback(new Error(JSON.stringify(myErrorObj)));
+	}
+};
+
+const getRelations = async (app, key, dataApp, type) => {
+	const classesMain = await g
+		.V()
+		.hasLabel(app)
+		.has('userApplicationKey', key)
+		.has('state', 'open')
+		.not(__.has('state', 'close'))
+		.where(__.outE(type))
+		.values('name')
+		.toList();
+	for (const classe of classesMain) {
+		const relation = {
+			classe: '',
+			uses: [],
+		};
+		const classCalled = await g
+			.V()
+			.hasLabel(app)
+			.has('userApplicationKey', key)
+			.has('state', 'open')
+			.not(__.has('state', 'close'))
+			.has('name', classe)
+			.out(type)
+			.values('name')
+			.toList();
+		const arrExtends = [];
+		for (const value of classCalled) {
+			arrExtends.push({
+				name: value,
+			});
+		}
+		relation.classe = classe;
+		relation.uses = arrExtends;
+		if (type === 'extend') {
+			dataApp.relationsExtends.push(relation);
+		} else if (type === 'implement') {
+			dataApp.relationsImplement.push(relation);
+		} else {
+			dataApp.usedClasses.push(relation);
+		}
+	}
+};
+
+const getTables = async (app, key, dataApp) => {
+	const classesWithTables = await g
+		.V()
+		.hasLabel(app)
+		.has('userApplicationKey', key)
+		.has('state', 'open')
+		.not(__.has('state', 'close'))
+		.where(__.outE('table'))
+		.values('name')
+		.toList();
+	for (const classe of classesWithTables) {
+		const relation = {
+			classe: '',
+			table: [],
+		};
+		const tables = await g
+			.V()
+			.hasLabel(app)
+			.has('userApplicationKey', key)
+			.has('state', 'open')
+			.not(__.has('state', 'close'))
+			.has('name', classe)
+			.out('table')
+			.values('name')
+			.toList();
+		const arrTables = [];
+		for (const value of tables) {
+			arrTables.push({
+				name: value,
+			});
+		}
+		relation.classe = classe;
+		relation.table = arrTables;
+		dataApp.tables.push(relation);
 	}
 };
