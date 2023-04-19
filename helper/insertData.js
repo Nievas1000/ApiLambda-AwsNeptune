@@ -51,6 +51,12 @@ exports.insertData = async (event, context, callback) => {
 				event.interfaces,
 				'Interface'
 			);
+			// Obtenemos las classes que sean endpoints y le agregamos esa propiedad
+			await saveEndpoints(
+				event.applicationName,
+				event.userApplicationKey,
+				event.endpoints
+			);
 			// Guardamos las relaciones de extends
 			await saveRelationExtend(
 				event.applicationName,
@@ -208,6 +214,20 @@ const saveTables = async (app, key, data) => {
 					.property('state', 'loading')
 					.property('type', 'Table')
 			)
+			.next();
+	}
+};
+
+const saveEndpoints = async (app, key, data) => {
+	for (const value of data) {
+		await g
+			.V()
+			.hasLabel(app)
+			.has('name', value)
+			.has('userApplicationKey', key)
+			.has('type', 'Class')
+			.has('state', 'loading')
+			.property('endpoint', true)
 			.next();
 	}
 };

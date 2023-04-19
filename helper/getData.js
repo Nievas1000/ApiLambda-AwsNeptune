@@ -39,6 +39,7 @@ exports.getData = async (event, context, callback) => {
 			const dataApp = {
 				applicationName: app,
 				classes: [],
+				endpoints: [],
 				date: date[0],
 				interfaces: [],
 				relationsExtends: [],
@@ -65,6 +66,18 @@ exports.getData = async (event, context, callback) => {
 				.has('type', 'Interface')
 				.values('name')
 				.toList();
+
+			const endpoints = await g
+				.V()
+				.hasLabel(app)
+				.has('userApplicationKey', event.userApplicationKey)
+				.has('state', 'open')
+				.not(__.has('state', 'close'))
+				.has('type', 'Class')
+				.has('endpoint', true)
+				.values('name')
+				.toList();
+			dataApp.endpoints.push(endpoints);
 			dataApp.classes.push(names);
 			dataApp.interfaces.push(interfaces);
 			// Extend Class
@@ -74,7 +87,7 @@ exports.getData = async (event, context, callback) => {
 			// Used Class
 			await getRelations(app, event.userApplicationKey, dataApp, 'uses');
 			// Tables of a Class
-			await getTables(app, event.userApplicationKey, dataApp);
+			await getRelations(app, event.userApplicationKey, dataApp, 'table');
 			data.push(dataApp);
 		}
 		await dc.close();
@@ -122,49 +135,19 @@ const getRelations = async (app, key, dataApp, type) => {
 		}
 		relation.classe = classe;
 		relation.uses = arrExtends;
-		if (type === 'extend') {
-			dataApp.relationsExtends.push(relation);
-		} else if (type === 'implement') {
-			dataApp.relationsImplement.push(relation);
-		} else {
-			dataApp.usedClasses.push(relation);
+		switch (type) {
+			case 'extend':
+				dataApp.relationsExtends.push(relation);
+				break;
+			case 'implement':
+				dataApp.relationsImplement.push(relation);
+				break;
+			case 'table':
+				dataApp.tables.push(relation);
+				break;
+			case 'uses':
+				dataApp.usedClasses.push(relation);
+				break;
 		}
-	}
-};
-
-const getTables = async (app, key, dataApp) => {
-	const classesWithTables = await g
-		.V()
-		.hasLabel(app)
-		.has('userApplicationKey', key)
-		.has('state', 'open')
-		.not(__.has('state', 'close'))
-		.where(__.outE('table'))
-		.values('name')
-		.toList();
-	for (const classe of classesWithTables) {
-		const relation = {
-			classe: '',
-			table: [],
-		};
-		const tables = await g
-			.V()
-			.hasLabel(app)
-			.has('userApplicationKey', key)
-			.has('state', 'open')
-			.not(__.has('state', 'close'))
-			.has('name', classe)
-			.out('table')
-			.values('name')
-			.toList();
-		const arrTables = [];
-		for (const value of tables) {
-			arrTables.push({
-				name: value,
-			});
-		}
-		relation.classe = classe;
-		relation.table = arrTables;
-		dataApp.tables.push(relation);
 	}
 };
